@@ -1,0 +1,17 @@
+homeassistant:
+  customize:
+    package.node_anchors:
+      common: &common
+        package: lights
+
+vacuum:
+  - platform: xiaomi_miio
+    host: !secret vacuum_host
+    token: !secret vacuum_token
+
+# 1: Barnrummet
+# 2: Kontoret
+# 16: Hallen
+# 17: Sovrummet
+# 18: Köket
+# 19: Vardagsrummet

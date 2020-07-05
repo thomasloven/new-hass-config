@@ -1,0 +1,6 @@
+/*
+/*/
+!.gitignore
+!configuration.yaml
+!packages
+!python_scripts

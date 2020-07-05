@@ -1,0 +1,129 @@
+homeassistant:
+  customize:
+    package.node_anchors:
+      common: &common
+        package: lights
+
+    switch.circadian_lighting_circadian_lighting:
+      <<: *common
+    switch.circadian_lighting_circadian_kontoret:
+      <<: *common
+
+    light.sovrum_2:
+      <<: *common
+    light.takflakt:
+      <<: *common
+    light.taklampor:
+      <<: *common
+
+    light.fasad:
+      <<: *common
+      night_light: true
+
+    light.mellangang:
+      outside_light: true
+    light.uppfart:
+      outside_light: true
+    light.baksida:
+      outside_light: true
+    light.entre:
+      outside_light: true
+
+    automation.night_lights:
+      <<: *common
+    automation.outside_lights:
+      <<: *common
+
+
+light:
+  - platform: group
+    name: Sovrum
+    entities:
+      - light.sovrum1
+      - light.sovrum2
+      - light.sovrum3
+  - platform: group
+    name: Takfläkt
+    entities:
+      - light.takflakt_1
+      - light.takflakt_2
+      - light.takflakt_3
+      - light.takflakt_4
+  - platform: group
+    name: Fasad
+    entities:
+      - light.fasad_1
+      - light.fasad_2
+      - light.fasad_3
+      - light.fasad_4
+      - light.fasad_5
+      - light.fasad_6
+      - light.fasad_7
+      - light.fasad_8
+  - platform: group
+    name: Taklampor
+    entities:
+      - light.lilla_hallen
+      - light.sovrum
+      - light.stora_hallen
+      - light.takflakt
+      - light.taklampa_koket
+      - light.taklampa_kontoret
+      - light.vardagsrum
+
+
+circadian_lighting:
+  min_colortemp: 3000
+
+switch:
+  - platform: circadian_lighting
+    disable_brightness_adjust: true
+    lights_ct:
+      - light.lilla_hallen
+      - light.stora_hallen
+      - light.takflakt
+      - light.taklampa_koket
+      - light.vardagsrum
+      - light.sovrum
+  - platform: circadian_lighting
+    name: Circadian Kontoret
+    disable_brightness_adjust: true
+    lights_rgb:
+      - light.desk_light
+      - light.taklampa_kontoret
+
+
+automation:
+  - alias: Night Lights
+    trigger:
+      - platform: event
+        event_type: TOD_UPDATE
+    action:
+      - service_template: >-
+          {% if is_state('binary_sensor.time_of_day_dark_outside', 'on') %}
+            light.turn_on
+          {% else %}
+            light.turn_off
+          {% endif %}
+        data_template:
+          entity_id: >-
+            {{ states.light | selectattr("attributes.night_light") | join(", ", attribute="entity_id") }}
+
+  - alias: Outside Lights
+    trigger:
+      - platform: event
+        event_type: TOD_UPDATE
+    action:
+      - service_template: >-
+          {% if is_state('binary_sensor.time_of_day_dark_outside', 'on') %}
+            {% if is_state('input_select.time_of_day', 'night') %}
+              light.turn_off
+            {% else %}
+              light.turn_on
+            {% endif %}
+          {% else %}
+            light.turn_off
+          {% endif %}
+        data_template:
+          entity_id: >-
+            {{ states.light | selectattr("attributes.outside_light") | join(", ", attribute="entity_id") }}

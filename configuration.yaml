@@ -1,0 +1,36 @@
+homeassistant:
+  packages: !include_dir_named packages
+default_config:
+
+http:
+  # base_url: !secret http_base_url
+  use_x_forwarded_for: true
+  trusted_proxies:
+    - 172.18.0.3
+
+tts:
+  - platform: google_translate
+    language: 'sv'
+    base_url: !secret tts_base_url
+
+recorder:
+  db_url: mysql://hass:hass@db:3306/hass?charset=utf8
+
+influxdb:
+  host: influx
+  username: hass
+  password: hass
+  database: hass
+
+python_script:
+
+sensor:
+  - platform: time_date
+    display_options:
+      - time
+      - date
+
+group: !include groups.yaml
+automation: !include automations.yaml
+script: !include scripts.yaml
+scene: !include scenes.yaml

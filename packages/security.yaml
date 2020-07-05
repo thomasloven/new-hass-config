@@ -1,0 +1,41 @@
+homeassistant:
+  customize:
+    package.node_anchors:
+      common: &common
+        package: security
+      door: &door
+        <<: *common
+        device_class: door
+
+    group.shell:
+      <<: *common
+    sensor.mogelrisk:
+      <<: *common
+
+    binary_sensor.framdorr:
+      <<: *door
+    binary_sensor.ytterdorr_tvattstuga:
+      <<: *door
+    binary_sensor.vardagsrum_altandorr:
+      <<: *door
+    binary_sensor.sovrum_altandorr:
+      <<: *door
+
+
+group:
+  shell:
+    name: Skal
+    entities:
+      - binary_sensor.framdorr
+      - binary_sensor.ytterdorr_tvattstuga
+      - binary_sensor.vardagsrum_altandorr
+      - binary_sensor.sovrum_altandorr
+
+
+sensor:
+  - platform: mold_indicator
+    name: Mögelrisk
+    indoor_temp_sensor: sensor.tygvind_temp
+    indoor_humidity_sensor: sensor.tygvind_humidity
+    outdoor_temp_sensor: sensor.utomhus_temp
+    calibration_factor: 3.0

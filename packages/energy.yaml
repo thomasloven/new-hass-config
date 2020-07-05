@@ -1,0 +1,30 @@
+homeassistant:
+  customize:
+    package.node_anchors:
+      common: &common
+        package: energy
+
+    sensor.energy_meter:
+      <<: *common
+    sensor.hourly_energy:
+      <<: *common
+    sensor.daily_energy:
+      <<: *common
+    sensor.monthly_energy:
+      <<: *common
+
+sensor:
+  - platform: integration
+    source: sensor.power_meter
+    name: Energy Meter
+
+utility_meter:
+  hourly_energy:
+    source: sensor.energy_meter
+    cycle: hourly
+  daily_energy:
+    source: sensor.energy_meter
+    cycle: daily
+  monthly_energy:
+    source: sensor.energy_meter
+    cycle: monthly

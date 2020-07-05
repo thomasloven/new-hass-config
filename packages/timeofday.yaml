@@ -1,0 +1,103 @@
+homeassistant:
+  customize:
+    package.settings:
+
+      ####################
+      # SETTINGS
+      morning_time: &morning "05:45"
+      day_time: &day "08:00"
+      evening_time: &evening "19:00"
+      night_time: &night "23:00"
+
+      light_sensor: &light_sensor "sensor.mellangang_lightlevel"
+      dark_level_outside: &dark_outside 120
+      dark_level_inside: &dark_inside 150
+
+      tod_name: &tod_name "Tid på dagen"
+      dark_outside: &dark_outside_name "Mörkt ute"
+      dark_inside: &dark_inside_name "Mörkt inne"
+
+      ####################
+
+
+    package.node_anchors:
+      common: &common
+        package: timeofday
+
+    input_select.time_of_day:
+      <<: *common
+      morning_time: *morning
+      day_time: *day
+      evening_time: *evening
+      night_time: *night
+      sensor: *light_sensor
+      dark_outside: *dark_outside
+      dark_inside: *dark_inside
+
+    binary_sensor.time_of_day_dark_outside:
+      <<: *common
+    binary_sensor.time_of_day_dark_inside:
+      <<: *common
+
+    automation.tod_update_time_of_day:
+      <<: *common
+
+input_select:
+  time_of_day:
+    name: *tod_name
+    options:
+      - morning
+      - day
+      - evening
+      - night
+
+binary_sensor:
+  - platform: template
+    sensors:
+      time_of_day_dark_outside:
+        friendly_name: *dark_outside_name
+        value_template: >-
+          {% set tod = 'input_select.time_of_day' %}
+          {{ (states(state_attr(tod, 'sensor'))|float) < (state_attr(tod, 'dark_outside')|float) }}
+      time_of_day_dark_inside:
+        friendly_name: *dark_inside_name
+        value_template: >-
+          {% set tod = 'input_select.time_of_day' %}
+          {{ (states(state_attr(tod, 'sensor'))|int) < (state_attr(tod, 'dark_inside')|float) }}
+
+
+automation:
+  - alias: TOD - Update Time Of Day
+    trigger:
+      - platform: time
+        at: *morning
+      - platform: time
+        at: *day
+      - platform: time
+        at: *evening
+      - platform: time
+        at: *night
+      - platform: state
+        entity_id: binary_sensor.time_of_day_dark_outside, binary_sensor.time_of_day_Dark_inside
+      - platform: homeassistant
+        event: start
+    action:
+      - service: input_select.select_option
+        data_template:
+          entity_id: input_select.time_of_day
+          option: >-
+            {% set tod = 'input_select.time_of_day' %}
+            {% set today = (now() | as_timestamp | timestamp_custom("%Y-%m-%d")) %}
+            {% set morning = strptime(today + " " + state_attr(tod, 'morning_time'), "%Y-%m-%d %H:%M") | as_timestamp %}
+            {% set day = strptime(today + " " + state_attr(tod, 'day_time'), "%Y-%m-%d %H:%M") | as_timestamp %}
+            {% set evening = strptime(today + " " + state_attr(tod, 'evening_time'), "%y-%m-%d %H:%M") | as_timestamp%}
+            {% set night = strptime(today + " " + state_attr(tod, 'night_time'), "%Y-%m-%d %H:%M") | as_timestamp %}
+
+            {% if now() | as_timestamp >= night %} night
+            {% elif now() | as_timestamp >= evening %} evening
+            {% elif now() | as_timestamp >= day %} day
+            {% elif now() | as_timestamp >= morning %} morning
+            {% else %} night
+            {% endif %}
+
+      - event: TOD_UPDATE

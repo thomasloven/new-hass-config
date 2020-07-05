@@ -1,0 +1,27 @@
+homeassistant:
+  customize:
+    package.node_anchors:
+      common: &c
+        package: "cameras"
+
+    camera.barnrum:
+      <<: *c
+
+    camera.vardagsrum:
+      <<: *c
+
+camera:
+  # Moved to GUI
+  # - name: Barnrum
+  #   platform: onvif
+  #   host: !secret camera_barnrum_host
+  #   port: !secret camera_barnrum_port
+  #   username: !secret camera_barnrum_username
+  #   password: !secret camera_barnrum_password
+
+  - name: Vardagsrum
+    platform: mjpeg
+    mjpeg_url: !secret camera_vardagsrum_mjpeg
+    still_image_url: !secret camera_vardagsrum_still
+    username: !secret camera_vardagsrum_username
+    password: !secret camera_vardagsrum_password
